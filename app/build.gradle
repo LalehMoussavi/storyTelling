@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion '27.0.3'
+
+    defaultConfig {
+        applicationId "com.google.android.gms.location.sample.geofencing"
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        vectorDrawables.useSupportLibrary = true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:support-vector-drawable:26.1.0'
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    testCompile 'junit:junit:4.12'
+
+    compile 'com.android.support:design:26.1.0'
+    compile 'com.google.android.gms:play-services-location:11.0.0'
+    compile 'com.google.android.gms:play-services-maps:11.0.0'
+    compile 'com.google.android.gms:play-services:11.2.0'
+    //added by laleh for direction, youtube video, Uber
+    compile 'com.github.jd-alexander:library:1.1.0'
+    //added by laleh, https://android.jlelse.eu/google-maps-directions-api-5b2e11dee9b0
+    compile 'com.google.maps:google-maps-services:0.1.20'
+    compile 'com.mapzen.android:speakerbox:1.4.1'
+}
