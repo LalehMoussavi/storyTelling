@@ -1,9 +1,7 @@
 story telling in space and time
 =================================
 
-Demonstrates how to create and remove geofences using the
-[GeofencingApi](https://developer.android.com/reference/com/google/android/gms/location/GeofencingApi.html).
-Monitor geofence transitions and creates notifications whenever a device enters or exits a geofence.
+Android Studio/Java code for story telling project
 
 Introduction
 ============
