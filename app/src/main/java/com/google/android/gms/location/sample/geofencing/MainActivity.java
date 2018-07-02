@@ -46,12 +46,10 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.mapzen.speakerbox.Speakerbox;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Demonstrates how to create and remove geofences using the GeofencingApi. Uses an IntentService
@@ -102,14 +100,21 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 //    private static Button ignoreStoriesButton;
 
     public static Geofence lastEnteredGeofence = null;
+    public static Geofence lastExitedGeofence = null;
     public static String activeStoryStopName;
     public static String nextStopTovisit;
+    public static String requestedStop = null;//This is what user has asked explicitly. Has priority over other stops.
     public static AssetManager am;
     public static boolean shouldCoverByMap = true;
+    public static boolean goToClosetStop = false;//false: first stop, true: closest stop
+    public static boolean onlyShowMarkers = false; //true: geofences & direction stops working (0n tab3)
+
     public static HashSet<String> seenStops = new HashSet<String>();
     public static boolean justEnteredGeofence;
 
     private PendingGeofenceTask mPendingGeofenceTask = PendingGeofenceTask.NONE;
+
+    public static boolean firstTime = true;//TODO: remove this
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -155,8 +160,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         Cursor cursor =  mdatabase.rawQuery("select * from stops;", null);
         System.out.println("number of columns: "+ cursor.getColumnCount());
         //TODO: ADDED BY ME!
-        MainActivity.nextStopTovisit = "";
-        MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+//        MainActivity.nextStopTovisit = "";
 
 
         // ADDED BY LALEH FOR DB
@@ -168,41 +172,63 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
         if (!checkPermissions()) {
             requestPermissions();
-        } else {
+        }
+        else {
             performPendingGeofenceTask();
         }
 
         //Added by Laleh
 
 
-//        showHello(getApplicationContext(),"Hello World");
+//        toastText(getApplicationContext(),"Hello World");
 
 //        if (lastEnteredGeofence!=null){
 //            handleEnteringDataZone(lastEnteredGeofence);
 //        }
 
-        mAddGeofencesButton.performClick();
-        mAddGeofencesButton.setVisibility(View.GONE);
-        mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
+
 
         //Added by Laleh
 
-        System.err.println("status: "+shouldCoverByMap+" "+lastEnteredGeofence);
+        System.err.println("status: " + firstTime + " "+shouldCoverByMap+" "+lastEnteredGeofence);
+
+        if (firstTime){
+            firstTime = false;//TODO: change
+            System.out.println("first time changed to: "+firstTime);
+            Intent intent = new Intent();
+            intent.setClass(this, Introduction.class);
+            startActivity(intent);
+
+        }
+
+        else if (shouldCoverByMap && onlyShowMarkers){
+            Intent intent = new Intent();
+            intent.setClass(this,MapsActivityCurrentPlace.class);
+            startActivity(intent);
+
+        }
 
         //Now, let's start the Map
 
-        //only call map activity if shouldCoverByMap=true //alan
-        if (shouldCoverByMap==true){
+        //only call map activity if shouldCoverByMap=true
+
+
+        else if (shouldCoverByMap && !onlyShowMarkers){
+            MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+            mAddGeofencesButton.performClick();
+            mAddGeofencesButton.setVisibility(View.GONE);
+            mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
+
             System.err.println("starting map!+ "+shouldCoverByMap);
             Intent intent = new Intent();
             intent.setClass(this,MapsActivityCurrentPlace.class);
             startActivity(intent);
         }
         else if (lastEnteredGeofence!=null){//this means we have entered in geofence
-
+            activeStoryStopName = lastEnteredGeofence.getRequestId();
             shouldCoverByMap = true;
-            if (Story.uniqueStory!=null && Story.uniqueStory.speakerbox!=null){
-                Story.uniqueStory.speakerbox.stop();
+            if (Story.uniqueStory!=null){
+                MySpeakerBox.stop();
                 Story.uniqueStory.finish();
             }
             //TODO: wait 10 seconds
@@ -224,9 +250,10 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
 
 
+
     }
 
-    static void showHello(Context context, CharSequence text){
+    static void toastText(Context context, CharSequence text){
         int duration = Toast.LENGTH_SHORT;
 
         Toast toast = Toast.makeText(context, text, duration);
@@ -594,4 +621,8 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             }
         }
     }
+
+
 }
+
+

@@ -90,9 +90,26 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
 
             //Added by Laleh
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-                MainActivity.lastEnteredGeofence = triggeringGeofences.get(0);
-                MainActivity.activeStoryStopName = triggeringGeofences.get(0).getRequestId();
+                System.err.println("in enter geofence");
+                Geofence thisGeofence = triggeringGeofences.get(triggeringGeofences.size()-1);
+                if (MainActivity.lastEnteredGeofence != null && MainActivity.lastEnteredGeofence.getRequestId().equals(thisGeofence.getRequestId())){
+//                    Toast.makeText(MainActivity.uniqueMainActivity.getApplicationContext(), "ignoring geofence enter",  Toast.LENGTH_SHORT).show();
+//                    MainActivity.uniqueMainActivity.toastText("ignoring geofence enter"+triggeringGeofences.size());
+                    System.err.println("ignoring geofence enter "+triggeringGeofences.size()+" "+thisGeofence.getRequestId());
+//                    triggeringGeofences.clear();
+                    return ;
+                }
+
+                MainActivity.lastEnteredGeofence = thisGeofence;
+                MainActivity.activeStoryStopName = thisGeofence.getRequestId();
                 MainActivity.shouldCoverByMap=false;
+                MySpeakerBox.play("you have entered" +  MainActivity.activeStoryStopName + "Please press the notification message to listen to the story.");
+
+
+                if (thisGeofence.getRequestId().equals(MainActivity.requestedStop)){
+                    //Yayy, finally got to the requested stop.
+                    MainActivity.requestedStop = null;
+                }
 
                 for (Geofence geofence : triggeringGeofences) {
                     MainActivity.seenStops.add(geofence.getRequestId());
@@ -100,9 +117,22 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
 
             }
             else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+
+                MySpeakerBox.play("you have exited the" +  MainActivity.activeStoryStopName + "If you need an updated direction on your map, please press the notification message.");
+
+                Geofence thisGeofence = triggeringGeofences.get(triggeringGeofences.size()-1);
+                if (MainActivity.lastExitedGeofence != null && MainActivity.lastExitedGeofence.getRequestId().equals(thisGeofence.getRequestId())){
+//                    triggeringGeofences.clear();
+                    return ;
+                }
+
+
+
+                MainActivity.lastExitedGeofence = thisGeofence;
+
                 MainActivity.shouldCoverByMap=true;
 
-                MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation();
             }
 
             //Added by Laleh

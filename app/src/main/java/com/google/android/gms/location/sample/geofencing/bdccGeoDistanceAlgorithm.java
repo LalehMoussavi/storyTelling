@@ -1,5 +1,7 @@
 package com.google.android.gms.location.sample.geofencing;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
@@ -7,6 +9,59 @@ import java.util.List;
 public class bdccGeoDistanceAlgorithm {
 
     // distance in meters from GLatLng point to GPolyline or GPolygon poly
+    public static double bdccGeoDistanceFromPolyLine(List<LatLng> poly, LatLng point) {
+        int i;
+        bdccGeo p = new bdccGeo(point.latitude, point.longitude);
+
+        double mindistance = 1000000000;
+
+        for (i = 0; i < (poly.size() - 1); i++) {
+            LatLng p1 = poly.get(i);
+            bdccGeo l1 = new bdccGeo(p1.latitude, p1.longitude);
+
+            LatLng p2 = poly.get(i + 1);
+            bdccGeo l2 = new bdccGeo(p2.latitude, p2.longitude);
+
+            double distance = p.function_distanceToLineSegMtrs(l1, l2);
+            if (distance<mindistance){
+                mindistance = distance;
+            }
+
+
+        }
+
+        return mindistance;
+    }
+
+    public static double my_bdccGeoDistanceFromPolyLine(List<LatLng> poly, LatLng point) {
+        int i;
+
+        double mindistance = 1000000000;
+
+        Location l1 = new Location("");
+        l1.setLatitude(point.latitude);
+        l1.setLongitude(point.longitude);
+
+        for (i = 0; i < poly.size(); i++) {
+            LatLng p1 = poly.get(i);
+
+            Location l2 = new Location("");
+            l2.setLatitude(p1.latitude);
+            l2.setLongitude(p1.longitude);
+
+            double distance = l2.distanceTo(l1);
+            if (distance<mindistance){
+                mindistance = distance;
+            }
+        }
+
+        return mindistance;
+    }
+
+    static double getLatLongDistance(LatLng l1, LatLng l2){
+        return Math.sqrt(Math.pow(l1.latitude - l2.latitude,2) + Math.pow(l1.longitude - l2.longitude,2));
+    }
+
     public static boolean bdccGeoDistanceCheckWithRadius(List<LatLng> poly, LatLng point, int radius) {
         int i;
         bdccGeo p = new bdccGeo(point.latitude, point.longitude);

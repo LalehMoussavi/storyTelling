@@ -1,0 +1,1 @@
+The castle is haunted by Lady Janet Douglas,

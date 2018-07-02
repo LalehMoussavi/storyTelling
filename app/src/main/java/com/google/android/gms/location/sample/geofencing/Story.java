@@ -1,25 +1,28 @@
 package com.google.android.gms.location.sample.geofencing;
 
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.mapzen.speakerbox.Speakerbox;
-
-import java.util.concurrent.TimeUnit;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class Story extends AppCompatActivity {
 //    public static String lastStory = "last story";
-    private Button mCloseButton;
-    public static Speakerbox speakerbox;
 
+    private FloatingActionButton mDirButton;
     public static Story uniqueStory;
-    public Button mPlayButton;
+    private ImageView stopsImage;
+    public FloatingActionButton mPlayButton;
     public boolean enteredGeofence = false;//as opposed to clicked to get direction
-    String preStory = "";
+    String preStory = "";//to be played before the story is started
+    String postStory = "";//to be played after the story is finished
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +31,10 @@ public class Story extends AppCompatActivity {
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mPlayButton = (Button) findViewById(R.id.play);
-        speakerbox = new Speakerbox(getApplication());
+        mPlayButton = (FloatingActionButton) findViewById(R.id.play);
+
+//        floatingactionbutton fab = (floatingactionbutton) findviewbyid(r.id.fab) error
+//        speakerbox = new Speakerbox(getApplication());
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -44,14 +49,56 @@ public class Story extends AppCompatActivity {
         System.err.println("button: "+ mPlayButton);
         System.err.println(getParent());
 
+        mDirButton= findViewById(R.id.Direction);
+        if (MainActivity.onlyShowMarkers){
+            mDirButton.setEnabled(false);
+            mDirButton.setAlpha(0.3f);
+        }
+        stopsImage = findViewById(R.id.stopImage);
+
+
+
+
+//        if (MainActivity.justEnteredGeofence){
+//            if (MainActivity.requestedStop!=null){
+//                mDirButton.setText("RESUME THE ROUTING");
+//            }
+//            else{
+//                mDirButton.setText("Go TO THE NEXT SIGHT");
+//            }
+//
+//        }
+//        else{
+//            mDirButton.setText("GO TO THIS SIGHT");
+//        }
+
         if (MainActivity.justEnteredGeofence){
             enteredGeofence = true;
             MainActivity.justEnteredGeofence = false;
+            MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
 
             System.err.println("playing you have entered.");
 //            speakerbox.play();
-            preStory = "You have entered "+ MainActivity.lastEnteredGeofence.getRequestId()+". Please listen to the story.";
+            String stopName = MainActivity.lastEnteredGeofence.getRequestId();
+            preStory = " "+ Constants.id2PreStory.get(stopName);
+            try{
+                if (Constants.id2Dir.containsKey(stopName)){
+                    int nextIdx = Constants.id2Idx.get(MainActivity.nextStopTovisit);
+                    int thisIdx = Constants.id2Idx.get(stopName);
+                    if (nextIdx==thisIdx+1 || (nextIdx==Constants.id2Idx.size()-1 && nextIdx==thisIdx)){
+                        postStory = " "+ Constants.id2Dir.get(stopName);
+                    }
+                }
+            }
 
+            catch (Exception e){
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                String sStackTrace = sw.toString();
+                Toast.makeText(getApplicationContext(), sStackTrace, Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
 
 //            try {
 //                TimeUnit.SECONDS.sleep(20);
@@ -59,69 +106,80 @@ public class Story extends AppCompatActivity {
 //                e.printStackTrace();
 //            }
 
-            Story.uniqueStory.mPlayButton.performClick();
+//            Story.uniqueStory.mPlayButton.performClick();
+
         }
 
-        String placeName = MainActivity.activeStoryStopName;
-        String lastStory = Constants.id2Story.get(placeName);
+
+        String stopName = MainActivity.activeStoryStopName;
+        String currentStory = getCurrentStory(stopName);
+
+        Resources resources = getApplicationContext().getResources();
+        int resourceId = resources.getIdentifier(stopName.toLowerCase().replace(" ","").replace("-","").replace("'",""), "drawable",
+                getPackageName());
+        stopsImage.setImageResource(resourceId);
 
         TextView textView = findViewById(R.id.storyText);
-        textView.setText(lastStory);
+        textView.setText(currentStory);
 
         TextView textView1 = findViewById(R.id.storyName);
-        textView1.setText(placeName);
+        textView1.setText(stopName);
 
 
 
-//        mCloseButton = (Button) findViewById(R.id.closeStory);
+
+
 
     }
 
+    String getCurrentStory(String stopName){
+        String currentStory = Constants.id2Story.get(stopName);
+        if (currentStory==null){
+            currentStory = "There is no story about this stop. Just enjoy!";
+        }
+        return currentStory;
+    }
 
 
     public void playButtonHandler(View view){
-        String placeName = MainActivity.activeStoryStopName;
-        String lastStory = Constants.id2Story.get(placeName);
-        System.err.println("Playing The actual story");
-
-        if (speakerbox != null) {
-            speakerbox.stop();
-        }
-
-        speakerbox.play(preStory+lastStory);
+        String stopName = MainActivity.activeStoryStopName;
+        String currentStory = getCurrentStory(stopName);
+        String text = preStory+currentStory+postStory;
         preStory = "";
-
+        postStory = "";
+        MySpeakerBox.play(text);
     }
 
     public void stopButtonHandler(View view){
-        if (speakerbox != null) {
-            speakerbox.stop();
-        }
+        MySpeakerBox.stop();
     }
 
-    public void closeStoryButtonHandler(View view)
-    {
-        finish();
-    }
+//    public void closeStoryButtonHandler(View view)
+//    {
+//        finish();
+//    }
 
     @Override
     public void onBackPressed(){
-        if (speakerbox != null) {
-            speakerbox.stop();
-        }
+
+        MySpeakerBox.stop();
+
+        MainActivity.shouldCoverByMap = true;
         super.onBackPressed();
     }
 
     public void directionHandler(View view){
-        if (enteredGeofence){
-            MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
-        }
-        else {
-            MainActivity.nextStopTovisit = MainActivity.activeStoryStopName;
+//        if (enteredGeofence){
+//            MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+//        }
+//        else {
+        if (!enteredGeofence){//This is when user asks explicitly to go to some stop.
+            MainActivity.requestedStop = MainActivity.nextStopTovisit = MainActivity.activeStoryStopName;
         }
 
-        MainActivity.shouldCoverByMap = true;
         MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation();
         onBackPressed();
     }
+
+
 }

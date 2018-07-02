@@ -159,8 +159,31 @@
     <string name="pause">pause</string>
     <string name="play">play</string>
     <string name="edinburgh_castle">Edinburgh Castle</string>
+    <string name="title_activity_introduction">Introduction</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 
     //Laleh: Copied from MapsActivityCurrentPlace
+
+    //Laleh: Copied from tabproject
+
+
+        <string name="tab_text_1">OVERVIEW</string>
+        <string name="tab_text_2">INTRODUCTION</string>
+        <string name="tab_text_3">TOUR</string>
+
+
+
+    //Laleh: Copied from tabproject
+    Two lines are deleted due to overlap with other names
+//tab1 text
+    <string name="tab1_styled_text"> Edinburgh is the historical, cultural and political capital of Scotland and has a reputation as one of the world\'s most paranormal cities in the world. There is no better introduction to the city than a walk straight down the oldest and definitely the most haunted part of Edinburgh, called the royal mile. We will start at Edinburgh\'s hill topping castle and humble down to the palace. Let\'s have a quick history in the INTRODUCTION section to give you an overview of the place.\n\nEach of the tour\'s sites have their own <b>title</b> and <b>track number </b>on the map. It is easiest to just follow the tour in the order that is laid out. But you can skip ahead or tailor your itinerary to your taste and time. When you got close to a site you will get a notification, if you click on it the related story will play automatically. As you leave each site you will get some guidance on how to find your next site.\n\n
+        <b>&#9679;</b>\t\t<b>Directions to Starting Point:</b>\nLocated at the very top of the Royal Mile, we  begin from the Edinburgh Castle.\n\n
+        <b>&#9679;</b>\t\t<b>Best time of day:</b>\nDuring the summer the Royal Mile can get very busy, so a morning tour is likely to be less congested.\n\n
+        <b>&#9679;</b>\t\t<b>Places to stop along the way:</b>\nPre-book your tickets to visit Edinburgh Castle, then refresh yourself at its cafe; take time off the route to visit the two free museums (museum of Edinburgh and the people\'s story) near Canongate Kirk; At the end of the tour have another refreshment at the Palace of Holyroodhouse\'s cafe.\n\n
+        <b>&#9679;</b>\t\t<b>Precautions:</b>\nTake care when crossing roads, and be aware that the stairs and cobbles of the Old Town can be slippery in wet weather.\n\n
+    </string>
+//tab1 text
+
 
 
 </resources>

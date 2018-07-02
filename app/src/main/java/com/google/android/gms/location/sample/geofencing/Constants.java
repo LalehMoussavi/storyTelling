@@ -16,6 +16,7 @@
 
 package com.google.android.gms.location.sample.geofencing;
 
+import android.content.res.Resources;
 import android.os.Environment;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -24,9 +25,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.io.File;
+import java.util.List;
 
 /**
  * Constants used in this sample.
@@ -53,13 +56,24 @@ final class Constants {
     static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS =
             GEOFENCE_EXPIRATION_IN_HOURS * 60 * 60 * 1000;
 //    static final float GEOFENCE_RADIUS_IN_METERS = 1609; // 1 mile, 1.6 km
-    static final float GEOFENCE_RADIUS_IN_METERS = 40;//Laleh changed to 30 m
+    static final float GEOFENCE_RADIUS_IN_METERS = 35;//Laleh changed to 30 m
 
     /**
      * Map for storing information about story stops in the Edinburgh.
      */
     static final LinkedHashMap<String, LatLng> Ed_LANDMARKS = new LinkedHashMap<>();
     public static HashMap<String,String> id2Story = new HashMap<>();
+    public static HashMap<String,String> id2Dir = new HashMap<>();
+    public static HashMap<String,String> id2PreStory = new HashMap<>();
+
+
+    public static ArrayList<String> ids = new ArrayList<>();
+    public static HashMap<String,Integer> id2Idx = new HashMap<>();
+
+    public static int NUMDIST = 5;//number of distances to get average before rerouting
+
+
+
 
     //TODO: Create a hashMap from numbers (0-26) to numbers (R.drawable.a...)
     static final HashMap<Integer, Integer> unSeenStop2Sign = new HashMap<>();
@@ -68,22 +82,28 @@ final class Constants {
 
     static {
         // Ghost tour stops
+        Ed_LANDMARKS.put("Informatics Forum",new LatLng(55.944772,-3.187362));
+        Ed_LANDMARKS.put("Home",new LatLng(55.926667, -3.185359));
+//
+//        Ed_LANDMARKS.put("Left_home",new LatLng(55.927297, -3.183221));
+//
+//        Ed_LANDMARKS.put("Bus stop_home",new LatLng(55.926686, -3.186341));
+//
+//        Ed_LANDMARKS.put("Avenue Store",new LatLng(55.927432, -3.187345));
 
 
-        Ed_LANDMARKS.put("Informatics Forum",new LatLng(55.944648,-3.187364));
 
-        Ed_LANDMARKS.put("Door Without card",new LatLng(55.944909, -3.186446));
+//        Ed_LANDMARKS.put("Door Without card",new LatLng(55.944909, -3.186446));
 
         Ed_LANDMARKS.put("Edinburgh Castle",new LatLng(55.948583, -3.199919));
 
-        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
-        
+//        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
+
         Ed_LANDMARKS.put("Castlehill",new LatLng(55.948614, -3.198350));
 
         Ed_LANDMARKS.put("Lawnmarket and Victoria Street",new LatLng(55.948792, -3.193799));
 
-        Ed_LANDMARKS.put("Mary King's Close",new LatLng(55.949873, -3.190470));
-
+//        Ed_LANDMARKS.put("Mary King's Close",new LatLng(55.949873, -3.190470));
 
         //Ed_LANDMARKS.put("Upper High Street",new LatLng(55.949802, -3.190169));
 
@@ -95,7 +115,7 @@ final class Constants {
 
         Ed_LANDMARKS.put("Canongate II",new LatLng(55.951503, -3.179397));
 
-        Ed_LANDMARKS.put("Holyrood",new LatLng(555.952665, -3.172624));
+       Ed_LANDMARKS.put("Holyrood",new LatLng(55.952665, -3.172624));
 
         //TODO: fill out this hashMap in the static block below similar to Ed_LANDMARKS
 
@@ -153,57 +173,63 @@ final class Constants {
         seenStop2Sign.put(26,R.drawable.zg);
 
 
-
-        String story = "";
-
         System.out.println(Environment.getExternalStorageDirectory().toString());
         File dir = new File("Ghost_Tour/");
         System.out.println(dir);
         System.out.println(dir.listFiles());
 
 
-        try {
-            InputStream is = MainActivity.am.open("ids.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String id = null;
-            while ((id = br.readLine())!=null){
+//        try {
+//            InputStream is = MainActivity.am.open("ids.txt");
+//            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+//            String id = null;
+            int idx = 0;
+//            while ((id = br.readLine())!=null){
+            for (String id: Ed_LANDMARKS.keySet()){
 //                 String storyFileName = "Ghost_Tour/" + id+".txt";
-                String storyFileName =  id+".txt";
+                String storyFileName =  id+".story";
+                String preStoryFileName =  id+".pre";
 
-                InputStream is2 = MainActivity.am.open(storyFileName);
-                BufferedReader br2 = new BufferedReader(new InputStreamReader(is2));
-
-                String line = null;
-                story="";
-                while ((line = br2.readLine())!=null){
-                    story += line+"\n";
+                String story = Util.readFileFromAsset(storyFileName);
+                String preStory = Util.readFileFromAsset(preStoryFileName);
 
 
-                }
                 id2Story.put(id,story);
+                id2PreStory.put(id,preStory);
+                id2Idx.put(id,idx);
+                ids.add(id);
+
+                String dirFileName = id+".dir";
 
 
-
-
-
-
+                String direction = Util.readFileFromAsset(dirFileName);
+                if (direction.equals("")){
+                    direction = "Please move to the next stop.";
+                }
+                id2Dir.put(id,direction);
+                idx++;
+                System.err.println("id: " + id);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-//        id2Story.put("Home",story);
-//        id2Story.put("Informatics Forum",story);
-//        id2Story.put("Edinburgh Castle",story);
-//        id2Story.put("Castlehill",story);
-//        id2Story.put("Lawnmarket and Victoria Street",story);
-//        id2Story.put("Mary King's Close",story);
-//        id2Story.put("Upper High Street",story);
-//        id2Story.put("Mid-High Street",story);
-//        id2Story.put("Lower High Street",story);
-//        id2Story.put("Canon gate I",story);
-//        id2Story.put("Canon gate II",story);
-//        id2Story.put("Holyrood",story);
+
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+//        id2pic.put("Home",story);
+//        id2pic.put("Informatics Forum",story);
+//        id2pic.put("Edinburgh Castle",story);
+//        id2pic.put("Castlehill",story);
+//        id2pic.put("Lawnmarket and Victoria Street",story);
+//        id2pic.put("Mary King's Close",story);
+//        id2pic.put("Upper High Street",story);
+//        id2pic.put("Mid-High Street",story);
+//        id2pic.put("Lower High Street",story);
+//        id2pic.put("Canon gate I",story);
+//        id2pic.put("Canon gate II",story);
+//        id2pic.put("Holyrood",story);
     }
+
+
 }
