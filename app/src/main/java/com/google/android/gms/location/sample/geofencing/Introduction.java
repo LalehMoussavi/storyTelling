@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TableLayout;
+import android.widget.TextView;
 
 import com.mapzen.speakerbox.Speakerbox;
 
@@ -57,7 +59,9 @@ public class Introduction extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+
+        TabLayout.ViewPagerOnTabSelectedListener tb = new MyTabLayoutViewPagerOnTabSelectedListener(mViewPager);
+        tabLayout.addOnTabSelectedListener(tb);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -67,12 +71,17 @@ public class Introduction extends AppCompatActivity {
 //                        .setAction("Action", null).show();
 //            }
 //        });
-        if (getIntent().getBooleanExtra("EXIT", false)) {
-            finish();
-        }
+//        if (getIntent().getBooleanExtra("EXIT", false)) {
+//            finish();
+//        }
 
     }
 
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,11 +125,11 @@ public class Introduction extends AppCompatActivity {
                 case 0:
                     tab1 tab1 = new tab1();
                     return tab1;
-                case 1:
+                case 2:
                     tab2 tab2 = new tab2();
                     return tab2;
 
-                case 2:
+                case 1:
                     tab3 tab3 = new tab3();
                     return tab3;
 
@@ -164,7 +173,15 @@ public class Introduction extends AppCompatActivity {
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finishAffinity();
+
+//                        finishAffinity();
+
+                        //finishing everything
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.putExtra("EXIT", true);
+                        startActivity(intent);
+
 
                     }
 
@@ -173,4 +190,26 @@ public class Introduction extends AppCompatActivity {
                 .show();
     }
 
+}
+
+class MyTabLayoutViewPagerOnTabSelectedListener extends TabLayout.ViewPagerOnTabSelectedListener{
+
+    public MyTabLayoutViewPagerOnTabSelectedListener(ViewPager mViewPager){
+        super(mViewPager);
+    }
+
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        System.out.println("switching tabs");
+        MySpeakerBox.stop();
+        super.onTabSelected(tab);
+    }
+
+    @Override
+    public void onTabUnselected(TabLayout.Tab tab) {
+    }
+
+    @Override
+    public void onTabReselected(TabLayout.Tab tab) {
+    }
 }

@@ -72,7 +72,10 @@ public class Story extends AppCompatActivity {
 //            mDirButton.setText("GO TO THIS SIGHT");
 //        }
 
-        if (MainActivity.justEnteredGeofence){
+        postStory = "";
+        preStory = "";
+
+        if (MainActivity.justEnteredGeofence || (MainActivity.lastEnteredGeofence!=null && MainActivity.lastEnteredGeofence.getRequestId().equals(MainActivity.activeStoryStopName))){
             enteredGeofence = true;
             MainActivity.justEnteredGeofence = false;
             MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
@@ -80,7 +83,7 @@ public class Story extends AppCompatActivity {
             System.err.println("playing you have entered.");
 //            speakerbox.play();
             String stopName = MainActivity.lastEnteredGeofence.getRequestId();
-            preStory = " "+ Constants.id2PreStory.get(stopName);
+            preStory = Constants.id2PreStory.get(stopName);
             try{
                 if (Constants.id2Dir.containsKey(stopName)){
                     int nextIdx = Constants.id2Idx.get(MainActivity.nextStopTovisit);
@@ -96,7 +99,10 @@ public class Story extends AppCompatActivity {
                 PrintWriter pw = new PrintWriter(sw);
                 e.printStackTrace(pw);
                 String sStackTrace = sw.toString();
-                Toast.makeText(getApplicationContext(), sStackTrace, Toast.LENGTH_SHORT).show();
+                if (Constants.debug){
+                    Toast.makeText(getApplicationContext(), sStackTrace, Toast.LENGTH_SHORT).show();
+                }
+
                 e.printStackTrace();
             }
 
@@ -106,10 +112,9 @@ public class Story extends AppCompatActivity {
 //                e.printStackTrace();
 //            }
 
-//            Story.uniqueStory.mPlayButton.performClick();
+            Story.uniqueStory.mPlayButton.performClick();
 
         }
-
 
         String stopName = MainActivity.activeStoryStopName;
         String currentStory = getCurrentStory(stopName);
@@ -134,8 +139,12 @@ public class Story extends AppCompatActivity {
 
     String getCurrentStory(String stopName){
         String currentStory = Constants.id2Story.get(stopName);
+
         if (currentStory==null){
             currentStory = "There is no story about this stop. Just enjoy!";
+        }
+        else{
+            currentStory = preStory+currentStory+postStory;
         }
         return currentStory;
     }
@@ -144,10 +153,10 @@ public class Story extends AppCompatActivity {
     public void playButtonHandler(View view){
         String stopName = MainActivity.activeStoryStopName;
         String currentStory = getCurrentStory(stopName);
-        String text = preStory+currentStory+postStory;
-        preStory = "";
-        postStory = "";
-        MySpeakerBox.play(text);
+//        String text = preStory+currentStory+postStory;
+//        preStory = "";
+//        postStory = "";
+        MySpeakerBox.play(currentStory,true);
     }
 
     public void stopButtonHandler(View view){

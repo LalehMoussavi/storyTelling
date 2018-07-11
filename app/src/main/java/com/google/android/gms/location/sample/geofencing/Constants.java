@@ -71,51 +71,48 @@ final class Constants {
     public static HashMap<String,Integer> id2Idx = new HashMap<>();
 
     public static int NUMDIST = 5;//number of distances to get average before rerouting
+    public static boolean debug = true;
 
 
 
 
     //TODO: Create a hashMap from numbers (0-26) to numbers (R.drawable.a...)
     static final HashMap<Integer, Integer> unSeenStop2Sign = new HashMap<>();
+
     static final HashMap<Integer, Integer> seenStop2Sign = new HashMap<>();
 
 
     static {
         // Ghost tour stops
-        Ed_LANDMARKS.put("Informatics Forum",new LatLng(55.944772,-3.187362));
-        Ed_LANDMARKS.put("Home",new LatLng(55.926667, -3.185359));
+
+//        Ed_LANDMARKS.put("Home",new LatLng(55.926667, -3.185359));
 //
 //        Ed_LANDMARKS.put("Left_home",new LatLng(55.927297, -3.183221));
 //
 //        Ed_LANDMARKS.put("Bus stop_home",new LatLng(55.926686, -3.186341));
-//
 //        Ed_LANDMARKS.put("Avenue Store",new LatLng(55.927432, -3.187345));
-
-
-
+//        Ed_LANDMARKS.put("Informatics Forum",new LatLng(55.944772,-3.187362));
+//        Ed_LANDMARKS.put("Upper High Street",new LatLng(55.949802, -3.190169));
 //        Ed_LANDMARKS.put("Door Without card",new LatLng(55.944909, -3.186446));
+        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
 
-        Ed_LANDMARKS.put("Edinburgh Castle",new LatLng(55.948583, -3.199919));
+        Ed_LANDMARKS.put("Edinburgh Castle",new LatLng(55.948591, -3.198279));
 
-//        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
-
-        Ed_LANDMARKS.put("Castlehill",new LatLng(55.948614, -3.198350));
+        Ed_LANDMARKS.put("Castlehill",new LatLng(55.948717, -3.197344));
 
         Ed_LANDMARKS.put("Lawnmarket and Victoria Street",new LatLng(55.948792, -3.193799));
 
-//        Ed_LANDMARKS.put("Mary King's Close",new LatLng(55.949873, -3.190470));
-
-        //Ed_LANDMARKS.put("Upper High Street",new LatLng(55.949802, -3.190169));
+        Ed_LANDMARKS.put("Mary King's Close",new LatLng(55.949873, -3.190470));
 
         Ed_LANDMARKS.put("Mid-High Street",new LatLng(55.950202, -3.187189));
 
         Ed_LANDMARKS.put("Lower High Street",new LatLng(55.950332, -3.186279));
 
-        Ed_LANDMARKS.put("Canongate I",new LatLng(55.950702, -3.183809));
+        Ed_LANDMARKS.put("Canongate 1",new LatLng(55.950702, -3.183809));
 
         Ed_LANDMARKS.put("Canongate II",new LatLng(55.951503, -3.179397));
 
-       Ed_LANDMARKS.put("Holyrood",new LatLng(55.952665, -3.172624));
+       Ed_LANDMARKS.put("Holyrood",new LatLng(55.952711, -3.174071));
 
         //TODO: fill out this hashMap in the static block below similar to Ed_LANDMARKS
 

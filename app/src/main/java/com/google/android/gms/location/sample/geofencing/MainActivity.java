@@ -18,8 +18,10 @@ package com.google.android.gms.location.sample.geofencing;
 
 import android.Manifest;
 import android.MySQLiteOpenHelper;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -114,11 +116,32 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     private PendingGeofenceTask mPendingGeofenceTask = PendingGeofenceTask.NONE;
 
-    public static boolean firstTime = true;//TODO: remove this
+    public static boolean firstTime = true;
+
+    static void reset(){
+        lastEnteredGeofence = null;
+        lastExitedGeofence = null;
+        activeStoryStopName = null;
+        nextStopTovisit = null;
+        requestedStop = null;//This is what user has asked explicitly. Has priority over other stops.
+        shouldCoverByMap = true;
+        goToClosetStop = false;//false: first stop, true: closest stop
+        onlyShowMarkers = false; //true: geofences & direction stops working (0n tab3)
+
+        seenStops = new HashSet<String>();
+        justEnteredGeofence = false;
+        firstTime = true;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (getIntent().getBooleanExtra("EXIT", false)) {
+            finish();
+            System.exit(0);
+        }
+
         uniqueMainActivity = this;
         setContentView(R.layout.main_activity);
         am = getAssets();
@@ -177,6 +200,8 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             performPendingGeofenceTask();
         }
 
+
+
         //Added by Laleh
 
 
@@ -205,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             Intent intent = new Intent();
             intent.setClass(this,MapsActivityCurrentPlace.class);
             startActivity(intent);
-
         }
 
         //Now, let's start the Map
@@ -218,13 +242,15 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             mAddGeofencesButton.performClick();
             mAddGeofencesButton.setVisibility(View.GONE);
             mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
-
             System.err.println("starting map!+ "+shouldCoverByMap);
             Intent intent = new Intent();
             intent.setClass(this,MapsActivityCurrentPlace.class);
             startActivity(intent);
         }
         else if (lastEnteredGeofence!=null){//this means we have entered in geofence
+            mAddGeofencesButton.performClick();
+            mAddGeofencesButton.setVisibility(View.GONE);
+            mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
             activeStoryStopName = lastEnteredGeofence.getRequestId();
             shouldCoverByMap = true;
             if (Story.uniqueStory!=null){
@@ -255,9 +281,11 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     static void toastText(Context context, CharSequence text){
         int duration = Toast.LENGTH_SHORT;
+        if (Constants.debug){
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
 
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
     }
 
     /**
@@ -332,6 +360,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             return;
         }
         showStory(this);
+//        MySpeakerBox.play(this);
     }
 
     public void ignoreStoryButtonHandler(View view) {
@@ -402,7 +431,10 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
             int messageId = getGeofencesAdded() ? R.string.geofences_added :
                     R.string.geofences_removed;
-            Toast.makeText(this, getString(messageId), Toast.LENGTH_SHORT).show();
+            if (Constants.debug){
+                Toast.makeText(this, getString(messageId), Toast.LENGTH_SHORT).show();
+            }
+
         } else {
             // Get the status code for the error and log it using a user-friendly message.
             String errorMessage = GeofenceErrorMessages.getErrorString(this, task.getException());

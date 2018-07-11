@@ -106,21 +106,26 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     private List<Polyline> polylines = new ArrayList<>();
     public static MapsActivityCurrentPlace uniqueMapsActivityCurrentPlace;
     public static String lastReroutedStop = "";
-//    Speakerbox speakerbox;
-    static long lastUpdatedTime = -1;
 
     List<PolylineOptions> allPolyOptions = new ArrayList<>();
+    List<Double> distancesToRoute = new ArrayList<>();
 
     private static final int[] COLORS = new int[]{R.color.primary_dark,R.color.primary,R.color.primary_light,R.color.accent,R.color.primary_dark_material_light};
 //    static boolean firstRoute = true;
 
+    static void reset(){
+        lastReroutedStop = "";
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace = this;
         polylines = new ArrayList<>();
-        MainActivity.toastText(getApplicationContext(),"Hello from MapsActi");
+        if (Constants.debug){
+            MainActivity.toastText(getApplicationContext(),"Hello from MapsActi");
+        }
+
 
 //         Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -163,40 +168,59 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                         //                    Toast.makeText(getApplicationContext(), "in get location changed",  Toast.LENGTH_SHORT).show();
                         if (polylines.size()>0) {
                             List<LatLng> latLongs = getLatLongsFromPolyLine(polylines.get(0));
-                            double minDistance = bdccGeoDistanceAlgorithm.my_bdccGeoDistanceFromPolyLine(latLongs, new LatLng(location.getLatitude(), location.getLongitude()));
-                            int mm = (int) minDistance;
-                            List<Double> distancesToRoute = new ArrayList<>();
-                            double averageDistanceToRoute = 0;
-                            double sumOfDistanceToRoute = 0 ;
-                            int i = 0;
-
-                            while (distancesToRoute.size() < Constants.NUMDIST){
-                                distancesToRoute.add(minDistance);
-
-                                for (double distance: distancesToRoute){
-
-                                    sumOfDistanceToRoute = (sumOfDistanceToRoute + distance);
-                                    i++;
-                                }
-                                averageDistanceToRoute = sumOfDistanceToRoute / i;
+                            double distanceFromPolyLine = bdccGeoDistanceAlgorithm.my_bdccGeoDistanceFromPolyLine(latLongs, new LatLng(location.getLatitude(), location.getLongitude()));
+                            if (Constants.debug){
+                                Toast.makeText(getApplicationContext(), "this distance"+" "+distanceFromPolyLine +" meters",  Toast.LENGTH_SHORT).show();
                             }
 
 
-                            Toast.makeText(getApplicationContext(), "Now distance"+" "+mm +" meters",  Toast.LENGTH_SHORT).show();
+                            distancesToRoute.add(distanceFromPolyLine);
 
-                            if (averageDistanceToRoute > 70){
+                            if (distancesToRoute.size() < Constants.NUMDIST){
+                                return;
+                            }
+
+//                            double averageDistanceToRoute;
+                            double minDistance = 100000 ;
+
+                            //now it's time to get the average
+                            for (double distance: distancesToRoute) {
+                                if (distance<minDistance){
+                                    minDistance = distance;
+                                }
+//                                sumOfDistanceToRoute = (sumOfDistanceToRoute + distance);
+                            }
+
+//                            averageDistanceToRoute = sumOfDistanceToRoute / Constants.NUMDIST;
+
+                            distancesToRoute = new ArrayList<>();
+
+                            int mm = (int) minDistance;
+                            if (Constants.debug){
+                                Toast.makeText(getApplicationContext(), "Min distance"+" "+mm +" meters",  Toast.LENGTH_SHORT).show();
+                            }
+
+
+                            if (minDistance > 120){
 
                                 if (!lastReroutedStop.equals(MainActivity.nextStopTovisit)){
 
                                     lastReroutedStop = MainActivity.nextStopTovisit;
-                                    Toast.makeText(getApplicationContext(), "new route"+" "+mm +" meters" +" num points: "+ latLongs.size(),  Toast.LENGTH_SHORT).show();
-                                    getRouteToMarker( new LatLng(location.getLatitude(), location.getLongitude()),Constants.Ed_LANDMARKS.get(MainActivity.nextStopTovisit));
+                                    if (Constants.debug){
+                                        Toast.makeText(getApplicationContext(), "new route"+" "+mm +" meters" +" num points: "+ latLongs.size(),  Toast.LENGTH_SHORT).show();
+                                    }
+
+//                                    getRouteToMarker( new LatLng(location.getLatitude(), location.getLongitude()),Constants.Ed_LANDMARKS.get(MainActivity.nextStopTovisit));
+                                    getDeviceLocation();
 //                                    speakerbox = new Speakerbox(getApplication());
 
-                                    MySpeakerBox.play("Wrong direction. Please check the updated route.");
+                                    MySpeakerBox.play("Wrong direction. Please check the map again.",false);
                                 }
                                 else{
-                                    Toast.makeText(getApplicationContext(), "already rerouted",  Toast.LENGTH_SHORT).show();
+                                    if (Constants.debug){
+                                        Toast.makeText(getApplicationContext(), "already rerouted",  Toast.LENGTH_SHORT).show();
+                                    }
+
                                 }
                             }
                         }
@@ -207,18 +231,21 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                         PrintWriter pw = new PrintWriter(sw);
                         e.printStackTrace(pw);
                         String sStackTrace = sw.toString();
-                        Toast.makeText(getApplicationContext(), sStackTrace, Toast.LENGTH_SHORT).show();
+                        if (Constants.debug){
+                            Toast.makeText(getApplicationContext(), sStackTrace, Toast.LENGTH_SHORT).show();
+                        }
+
                         e.printStackTrace();
                     }
                 }
                 @Override
                 public void onProviderDisabled(String provider) {
-                    Toast.makeText(getApplicationContext(), "disabled",  Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "disabled",  Toast.LENGTH_SHORT).show();
                     // TODO Auto-generated method stub
                 }
                 @Override
                 public void onProviderEnabled(String provider) {
-                    Toast.makeText(getApplicationContext(), "enabled",  Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "enabled",  Toast.LENGTH_SHORT).show();
                     // TODO Auto-generated method stub
                 }
                 @Override
@@ -231,11 +258,14 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 //            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, locationListener);
 
             //TODO: maybe change it to smaller value
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 5, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 7000, 10, locationListener);
 
 //            Toast.makeText(getApplicationContext(), "loc manager successfully set",  Toast.LENGTH_SHORT).show();
         } catch (SecurityException e) {
-            Toast.makeText(getApplicationContext(), "exception",  Toast.LENGTH_SHORT).show();
+            if (Constants.debug){
+                Toast.makeText(getApplicationContext(), "exception",  Toast.LENGTH_SHORT).show();
+            }
+
         }
 
     }
@@ -285,6 +315,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
             return;
         }
         else if (mLastKnownLocation!=null){
+            distancesToRoute = new ArrayList<>();
             Routing routing = new Routing.Builder()
                     .travelMode(AbstractRouting.TravelMode.WALKING)
                     .withListener(this)
@@ -424,7 +455,10 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     public void onMapReady(GoogleMap map) {
         mMap = map;
         mMap.setOnMarkerClickListener(this);
-        Toast.makeText(getApplicationContext(), "Inside onMapReady",  Toast.LENGTH_SHORT).show();
+        if (Constants.debug){
+            Toast.makeText(getApplicationContext(), "Inside onMapReady",  Toast.LENGTH_SHORT).show();
+        }
+
 
         final Context thisMapActivity = this;
 
@@ -507,7 +541,10 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                     public void onComplete(@NonNull Task<Location> task) {
 
                         if (task.isSuccessful()) {
-                            Toast.makeText(getApplicationContext(), "in getDeviceLocation re-reoute" , Toast.LENGTH_SHORT).show();
+                            if (Constants.debug){
+                                Toast.makeText(getApplicationContext(), "in getDeviceLocation re-reoute" , Toast.LENGTH_SHORT).show();
+                            }
+
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -530,6 +567,8 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
                             getRouteToMarker(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()),firstToVisit);
 
+
+
 //                            try {
 //                                TimeUnit.SECONDS.sleep(1);
 //                            } catch (InterruptedException e) {
@@ -537,10 +576,6 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 //                            }
 
                             //drawTourroute();
-
-
-
-
 
 
 
@@ -834,11 +869,14 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
     @Override
     public void onRoutingFailure(RouteException e) {
-        if(e != null) {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }else {
-            Toast.makeText(this, "Something went wrong, Try again", Toast.LENGTH_SHORT).show();
+        if (Constants.debug){
+            if(e != null) {
+                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }else {
+                Toast.makeText(this, "Something went wrong, Try again", Toast.LENGTH_SHORT).show();
+            }
         }
+
 
     }
 
@@ -920,8 +958,10 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
             Polyline polyline = mMap.addPolyline(polyOptions);
 
             polylines.add(polyline);
+            if (Constants.debug){
+                Toast.makeText(getApplicationContext(),"Route "+ (i+1) +": distance - "+ route.get(i).getDistanceValue()+": duration - "+ route.get(i).getDurationValue(),Toast.LENGTH_SHORT).show();
+            }
 
-            Toast.makeText(getApplicationContext(),"Route "+ (i+1) +": distance - "+ route.get(i).getDistanceValue()+": duration - "+ route.get(i).getDurationValue(),Toast.LENGTH_SHORT).show();
         }
 
 

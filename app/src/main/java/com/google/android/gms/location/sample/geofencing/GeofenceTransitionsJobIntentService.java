@@ -103,7 +103,7 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
                 MainActivity.lastEnteredGeofence = thisGeofence;
                 MainActivity.activeStoryStopName = thisGeofence.getRequestId();
                 MainActivity.shouldCoverByMap=false;
-                MySpeakerBox.play("you have entered" +  MainActivity.activeStoryStopName + "Please press the notification message to listen to the story.");
+                MySpeakerBox.play("you have entered" +  MainActivity.activeStoryStopName + "Please press the notification message to listen to the story.",false);
 
 
                 if (thisGeofence.getRequestId().equals(MainActivity.requestedStop)){
@@ -118,15 +118,13 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
             }
             else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
 
-                MySpeakerBox.play("you have exited the" +  MainActivity.activeStoryStopName + "If you need an updated direction on your map, please press the notification message.");
-
                 Geofence thisGeofence = triggeringGeofences.get(triggeringGeofences.size()-1);
                 if (MainActivity.lastExitedGeofence != null && MainActivity.lastExitedGeofence.getRequestId().equals(thisGeofence.getRequestId())){
 //                    triggeringGeofences.clear();
                     return ;
                 }
 
-
+                MySpeakerBox.play("you have exited the" +  thisGeofence.getRequestId() + "If you need an updated direction, please see the map.",false);
 
                 MainActivity.lastExitedGeofence = thisGeofence;
 
@@ -210,11 +208,11 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
 
         // Define the notification settings.
-        builder.setSmallIcon(R.drawable.ic_launcher)
+        builder.setSmallIcon(R.drawable.earth)
                 // In a real app, you may want to use a library like Volley
                 // to decode the Bitmap.
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(),
-                        R.drawable.ic_launcher))
+                        R.drawable.earth))
                 .setColor(Color.RED)
                 .setContentTitle(notificationDetails)
                 .setContentText(getString(R.string.geofence_transition_notification_text))
