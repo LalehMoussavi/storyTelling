@@ -5,7 +5,7 @@
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Introduction$PlaceholderFragment">
+    tools:context=".LandingPage$PlaceholderFragment">
 
     <ScrollView
         android:layout_width="367dp"
@@ -39,7 +39,6 @@
                     android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
-                    android:onClick="playButtonHandler"
                     android:clickable="true"
                     android:src="@drawable/play"
                     app:backgroundTint="@android:color/holo_blue_dark"
@@ -61,7 +60,6 @@
                     android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
-                    android:onClick="stopButtonHandler"
                     android:clickable="true"
                     android:src="@drawable/stop"
                     app:backgroundTint="@android:color/holo_blue_dark"

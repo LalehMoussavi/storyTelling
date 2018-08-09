@@ -167,20 +167,20 @@
     //Laleh: Copied from tabproject
 
 
-        <string name="tab_text_1">OVERVIEW</string>
+        <string name="tab_text_1">INTRODUCTION</string>
         <string name="tab_text_2">TOUR</string>
-        <string name="tab_text_3">INTRODUCTION</string>
+        <string name="tab_text_3">HISTORY</string>
 
 
 
     //Laleh: Copied from tabproject
     Two lines are deleted due to overlap with other names
 //tab1 text
-    <string name="tab1_styled_text"> welcome to the haunted Edinburgh walk, a guide to the dark history and supernatural locations of the capital. The app is your tour guide, showing you eight sites in total. It works best if you follow in sequence, but it is entirely up to you. When you got close to each of these stops, the related story starts playing and as you leave you will get some guidance on how to find the next site.
-         To have a more detailed information about the tour scroll down. To start the tour go to the "TOUR" tab and if you are wondering why there are so many ghost around, listen to the "INTRODUCTION" tab.\n\n
+    <string name="tab1_styled_text"> welcome to the haunted Edinburgh walk, a guide to the dark history and supernatural locations of the capital. The app is your tour guide, showing you nine sites in total. It works best if you follow in sequence, but it is entirely up to you. When you got close to each of these stops, the related story starts playing and as you leave you will get some guidance on how to find the next site.
+         To have detailed information about the tour scroll down. To start the tour go to the "TOUR" tab and if you are wondering why there are so many ghost around, listen to the "HISTORY" tab.\n\n
         <b>&#9679;</b>\t\t<b>Directions to Starting Point:</b>\nLocated at the very top of the Royal Mile, we  begin from the Edinburgh Castle.\n\n
         <b>&#9679;</b>\t\t<b>Best time of day:</b>\nDuring the summer the Royal Mile can get very busy, so a morning tour is likely to be less congested.\n\n
-        <b>&#9679;</b>\t\t<b>Places to stop along the way:</b>\nPre-book your tickets to visit Edinburgh Castle, then refresh yourself at its cafe; take time off the route to visit the two free museums (museum of Edinburgh and the people\'s story) near Canongate Kirk; At the end of the tour have another refreshment at the Palace of Holyroodhouse\'s cafe.\n\n
+        <b>&#9679;</b>\t\t<b>Places to stop along the way:</b>\nPre-book your tickets to visit Edinburgh Castle, then refresh yourself at its cafe; take time off the route to visit the two free museums (museum of Edinburgh and the people\'s story) near Canongate Kirk; At the end of the tour have another refreshment at the Palace of Holyrood house\'s cafe.\n\n
         <b>&#9679;</b>\t\t<b>Precautions:</b>\nTake care when crossing roads, and be aware that the stairs and cobbles of the Old Town can be slippery in wet weather.\n\n
     </string>
 //tab1 text

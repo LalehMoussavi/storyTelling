@@ -9,17 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
-
 public class tab3 extends Fragment implements View.OnClickListener{
 
     View rootView;
-    static tab3 uniqueTab3;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        uniqueTab3 = this;
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -41,7 +38,7 @@ public class tab3 extends Fragment implements View.OnClickListener{
     public void onStart() {
         super.onStart();
         System.out.println("switching tabs");
-        MySpeakerBox.stop();
+        MyTTS.stop();
 
         if (MainActivity.seenStops.size()>0){
             //We're in the middle of a tour

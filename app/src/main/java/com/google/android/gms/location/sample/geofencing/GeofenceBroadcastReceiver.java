@@ -18,6 +18,7 @@ package com.google.android.gms.location.sample.geofencing;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.content.WakefulBroadcastReceiver;
 
 /**
  * Receiver for geofence transition changes.
@@ -26,7 +27,7 @@ import android.content.Intent;
  * the transition type and geofence id(s) that triggered the transition. Creates a JobIntentService
  * that will handle the intent in the background.
  */
-public class GeofenceBroadcastReceiver extends BroadcastReceiver {
+public class GeofenceBroadcastReceiver extends WakefulBroadcastReceiver {
 
     /**
      * Receives incoming intents.

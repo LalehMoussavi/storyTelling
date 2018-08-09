@@ -10,11 +10,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class Story extends AppCompatActivity {
-//    public static String lastStory = "last story";
+public class Story extends AppCompatActivity implements TTSFinshHandler{
 
     private FloatingActionButton mDirButton;
     public static Story uniqueStory;
@@ -28,22 +28,11 @@ public class Story extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         uniqueStory = this;
-        setContentView(R.layout.activity_scrolling);
+        setContentView(R.layout.story_activity);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mPlayButton = (FloatingActionButton) findViewById(R.id.play);
 
-//        floatingactionbutton fab = (floatingactionbutton) findviewbyid(r.id.fab) error
-//        speakerbox = new Speakerbox(getApplication());
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
 
         System.err.println("here in story: "+MainActivity.lastEnteredGeofence);
         System.err.println("button: "+ mPlayButton);
@@ -57,24 +46,13 @@ public class Story extends AppCompatActivity {
         stopsImage = findViewById(R.id.stopImage);
 
 
-
-
-//        if (MainActivity.justEnteredGeofence){
-//            if (MainActivity.requestedStop!=null){
-//                mDirButton.setText("RESUME THE ROUTING");
-//            }
-//            else{
-//                mDirButton.setText("Go TO THE NEXT SIGHT");
-//            }
-//
-//        }
-//        else{
-//            mDirButton.setText("GO TO THIS SIGHT");
-//        }
-
         postStory = "";
         preStory = "";
 
+       /*
+        if just entered a geofence (and pressed the notification), or she's aleady in one stop
+        and asks for story
+         */
         if (MainActivity.justEnteredGeofence || (MainActivity.lastEnteredGeofence!=null && MainActivity.lastEnteredGeofence.getRequestId().equals(MainActivity.activeStoryStopName))){
             enteredGeofence = true;
             MainActivity.justEnteredGeofence = false;
@@ -88,7 +66,7 @@ public class Story extends AppCompatActivity {
                 if (Constants.id2Dir.containsKey(stopName)){
                     int nextIdx = Constants.id2Idx.get(MainActivity.nextStopTovisit);
                     int thisIdx = Constants.id2Idx.get(stopName);
-                    if (nextIdx==thisIdx+1 || (nextIdx==Constants.id2Idx.size()-1 && nextIdx==thisIdx)){
+                    if (nextIdx==(thisIdx+1) || (thisIdx==Constants.id2Idx.size()-1 && MainActivity.seenStops.size()>=.5*Constants.Ed_LANDMARKS.size())){
                         postStory = " "+ Constants.id2Dir.get(stopName);
                     }
                 }
@@ -106,11 +84,6 @@ public class Story extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-//            try {
-//                TimeUnit.SECONDS.sleep(20);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
 
             Story.uniqueStory.mPlayButton.performClick();
 
@@ -119,24 +92,24 @@ public class Story extends AppCompatActivity {
         String stopName = MainActivity.activeStoryStopName;
         String currentStory = getCurrentStory(stopName);
 
+        //load (and set) the stop's image!
         Resources resources = getApplicationContext().getResources();
         int resourceId = resources.getIdentifier(stopName.toLowerCase().replace(" ","").replace("-","").replace("'",""), "drawable",
                 getPackageName());
         stopsImage.setImageResource(resourceId);
 
+        //load (and set) the stop's story!
         TextView textView = findViewById(R.id.storyText);
         textView.setText(currentStory);
 
+        //load (and set) the stop's name!
         TextView textView1 = findViewById(R.id.storyName);
         textView1.setText(stopName);
 
 
 
-
-
-
     }
-
+    //gets the (full) story
     String getCurrentStory(String stopName){
         String currentStory = Constants.id2Story.get(stopName);
 
@@ -149,46 +122,59 @@ public class Story extends AppCompatActivity {
         return currentStory;
     }
 
-
+    //plays the story
     public void playButtonHandler(View view){
         String stopName = MainActivity.activeStoryStopName;
         String currentStory = getCurrentStory(stopName);
-//        String text = preStory+currentStory+postStory;
-//        preStory = "";
-//        postStory = "";
-        MySpeakerBox.play(currentStory,true);
-    }
 
+        MyTTS.play(currentStory,true,this);
+    }
+    //stops the TTS
     public void stopButtonHandler(View view){
-        MySpeakerBox.stop();
+        MyTTS.stop();
     }
 
-//    public void closeStoryButtonHandler(View view)
-//    {
-//        finish();
-//    }
 
     @Override
     public void onBackPressed(){
 
-        MySpeakerBox.stop();
+        MyTTS.stop();
 
         MainActivity.shouldCoverByMap = true;
         super.onBackPressed();
     }
 
     public void directionHandler(View view){
-//        if (enteredGeofence){
-//            MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
-//        }
-//        else {
+        System.out.println("entered geo: "+enteredGeofence);
         if (!enteredGeofence){//This is when user asks explicitly to go to some stop.
+            System.out.println("setting active story stop name");
             MainActivity.requestedStop = MainActivity.nextStopTovisit = MainActivity.activeStoryStopName;
         }
 
-        MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation();
-        onBackPressed();
+        MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation(true);
+        //This is when the user has seen everything and the tour has finished!
+        if (!MapsActivityCurrentPlace.shouldSuggestRoute()){
+            System.out.println("setting first time to true");
+            MainActivity.firstTime = true;
+            finish();
+            if (MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace!=null){
+                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.finish();
+            }
+
+        }
+        else{//normal case: go back to map and show the direction
+            onBackPressed();
+        }
+
     }
 
-
+    // closes the story page when TTS gets finished!
+    @Override
+    public void onTTSFinish() {
+        if (!MapsActivityCurrentPlace.shouldSuggestRoute()){
+            MainActivity.firstTime = true;
+        }
+        System.out.println("trying to finish story activity");
+        finish();
+    }
 }

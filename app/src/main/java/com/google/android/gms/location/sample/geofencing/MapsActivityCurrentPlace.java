@@ -17,7 +17,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -111,9 +110,14 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     List<Double> distancesToRoute = new ArrayList<>();
 
     private static final int[] COLORS = new int[]{R.color.primary_dark,R.color.primary,R.color.primary_light,R.color.accent,R.color.primary_dark_material_light};
+    LocationManager locationManager;
+    LocationListener locationListener;
 //    static boolean firstRoute = true;
 
+    List<Marker> pinnedMarkders = new ArrayList<>();
+
     static void reset(){
+
         lastReroutedStop = "";
     }
 
@@ -154,14 +158,22 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
     }
 
+    private String listToStr(List<Double> l){
+        String ret = "";
+        for (double a:l){
+            ret += ((int)a) +", ";
+        }
+        return ret;
+    }
+
     void setLocationManager(){
 
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         try {
 //            Toast.makeText(getApplicationContext(), "set loc manager",  Toast.LENGTH_SHORT).show();
 
-            LocationListener locationListener = new LocationListener() {
+            locationListener = new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location){
                     try{
@@ -169,14 +181,15 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                         if (polylines.size()>0) {
                             List<LatLng> latLongs = getLatLongsFromPolyLine(polylines.get(0));
                             double distanceFromPolyLine = bdccGeoDistanceAlgorithm.my_bdccGeoDistanceFromPolyLine(latLongs, new LatLng(location.getLatitude(), location.getLongitude()));
-                            if (Constants.debug){
-                                Toast.makeText(getApplicationContext(), "this distance"+" "+distanceFromPolyLine +" meters",  Toast.LENGTH_SHORT).show();
-                            }
-
 
                             distancesToRoute.add(distanceFromPolyLine);
 
-                            if (distancesToRoute.size() < Constants.NUMDIST){
+                            if (Constants.debug){
+                                Toast.makeText(getApplicationContext(), "the distances"+" "+distancesToRoute +" meters",  Toast.LENGTH_SHORT).show();
+                            }
+
+
+                            if (distancesToRoute.size() < Constants.NUMWRONGDIRLIST){
                                 return;
                             }
 
@@ -201,7 +214,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                             }
 
 
-                            if (minDistance > 120){
+                            if (minDistance > Constants.MINWRONGDIST){
 
                                 if (!lastReroutedStop.equals(MainActivity.nextStopTovisit)){
 
@@ -211,10 +224,10 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                                     }
 
 //                                    getRouteToMarker( new LatLng(location.getLatitude(), location.getLongitude()),Constants.Ed_LANDMARKS.get(MainActivity.nextStopTovisit));
-                                    getDeviceLocation();
+                                    getDeviceLocation(true);
 //                                    speakerbox = new Speakerbox(getApplication());
 
-                                    MySpeakerBox.play("Wrong direction. Please check the map again.",false);
+                                    MyTTS.play("Wrong direction. Please check the map again.",false);
                                 }
                                 else{
                                     if (Constants.debug){
@@ -257,7 +270,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
 //            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, locationListener);
 
-            //TODO: maybe change it to smaller value
+            //How often ceck for getting lost?
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 7000, 10, locationListener);
 
 //            Toast.makeText(getApplicationContext(), "loc manager successfully set",  Toast.LENGTH_SHORT).show();
@@ -275,18 +288,29 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     @Override
     public void onStart() {
         super.onStart();
+        if (mMap!=null){
+            pinAllMarkers();
+        }
+
     }
 
     //TODO: add int id as the third argument
 
     public void pinAllMarkers () {
+        removeAllMarkers();
+        pinnedMarkders = new ArrayList<>();
         int i = 0;
         for (String placeName: Constants.Ed_LANDMARKS.keySet()){
             System.err.println("pinng: " + placeName );
             pinMarker(Constants.Ed_LANDMARKS.get(placeName), placeName, i);
             i++;
         }
+    }
 
+    private void removeAllMarkers(){
+        for (Marker m: pinnedMarkders){
+            m.remove();
+        }
     }
 
 
@@ -296,6 +320,8 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
         Marker marker = mMap.addMarker(new MarkerOptions()
                         .title(placeName)
                         .position(latlong));
+
+        pinnedMarkders.add(marker);
 
         if (MainActivity.seenStops.contains(placeName) && ! MainActivity.onlyShowMarkers) {
 
@@ -309,19 +335,28 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 //        mMap.addMarker(options);
     }
 
+    static boolean shouldSuggestRoute(){
+         if (MainActivity.seenStops.size()==Constants.Ed_LANDMARKS.size() && MainActivity.requestedStop==null){
+             return false;
+         }
+        return true;
+    }
+
 
     private void getRouteToMarker(LatLng latLng1, LatLng latLng2) {
+        System.err.println("last loc, showOnlyMarkers: "+mLastKnownLocation+ " "+MainActivity.onlyShowMarkers);
         if (MainActivity.onlyShowMarkers){
             return;
         }
-        else if (mLastKnownLocation!=null){
+
+        else if (shouldSuggestRoute() && mLastKnownLocation!=null){
             distancesToRoute = new ArrayList<>();
             Routing routing = new Routing.Builder()
                     .travelMode(AbstractRouting.TravelMode.WALKING)
                     .withListener(this)
                     .alternativeRoutes(false)
                     .waypoints( latLng1, latLng2)
-                    .key("AIzaSyDSruS20vubRU2r4hW0IGeWZ7zYO-8YEMU")
+                    .key("AIzaSyDCrgpG03HXZbdiiinXF4OW4QpUACynjww")
                     .build();
 
             routing.execute();
@@ -380,10 +415,6 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
 
     }
-
-
-
-
 
     void findPath(){
 
@@ -509,7 +540,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
         // Get the current location of the device and set the position of the map.
         erasePolylines ();
 //        if (System.currentTimeMillis()-lastUpdatedTime>2000){
-        getDeviceLocation();
+        getDeviceLocation(true);
 //            lastUpdatedTime = System.currentTimeMillis();
 //        }
 //        else{
@@ -528,7 +559,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     /**
      * Gets the current location of the device, and positions the map's camera.
      */
-    public void getDeviceLocation() {
+    public void getDeviceLocation(final boolean shouldMoveCamera) {
         /*
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
@@ -547,9 +578,13 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+
+                            if (shouldMoveCamera){
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            }
+
 //                            getRouteToMarker(new LatLng(55.948583, -3.199919));
 
                             if (MainActivity.goToClosetStop){
@@ -565,9 +600,10 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
                             System.err.println("get Device Location!");
 //                            firstRoute = true;
 
-                            getRouteToMarker(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()),firstToVisit);
-
-
+                            if (shouldMoveCamera){
+                                System.err.println("calling get route to marker from inside get device location");
+                                getRouteToMarker(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()),firstToVisit);
+                            }
 
 //                            try {
 //                                TimeUnit.SECONDS.sleep(1);
@@ -603,6 +639,16 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
             return MainActivity.requestedStop;
         }
 
+        if (MainActivity.seenStops.size()==Constants.Ed_LANDMARKS.size()){
+            int i=0;
+            for (String stop:Constants.Ed_LANDMARKS.keySet()){
+                if (i==Constants.Ed_LANDMARKS.size()-1){
+                    return stop;
+                }
+                i++;
+            }
+        }
+
         String nextStopToVisit = "";
         int idx = -1;
         if (MainActivity.lastEnteredGeofence != null){
@@ -622,8 +668,20 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
         idx++;
 
-        if (idx==Constants.id2Idx.size()){
-            idx --;
+        if (idx==Constants.id2Idx.size()){//reached the end, restart from the begining
+            idx = -1;
+            while ((idx + 1)<Constants.id2Idx.size()){
+                if (!MainActivity.seenStops.contains(Constants.ids.get(idx+1))){
+//                nextStopToVisit = Constants.ids.get(idx+1);
+                    break;
+                }
+                else{
+                    idx++;
+                }
+            }
+
+            idx++;
+
         }
 
         nextStopToVisit = Constants.ids.get(idx);//The last stop
@@ -932,6 +990,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 //        System.err.println("first route: "+ firstRoute);
 
         polylines = new ArrayList<>();
+        distancesToRoute = new ArrayList<>();
         //TODO: uncomment this
         //add route(s) to the map.
         for (int i = 0; i <route.size(); i++) {
@@ -998,7 +1057,7 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
 
     @Override
     public void onBackPressed(){
-        MySpeakerBox.stop();
+        MyTTS.stop();
         MainActivity.firstTime = true;
         super.onBackPressed();
     }
@@ -1027,7 +1086,9 @@ public class MapsActivityCurrentPlace extends AppCompatActivity
     }
 
 
-
-
-
+    @Override
+    public void finish() {
+        super.finish();
+        locationManager.removeUpdates(locationListener);
+    }
 }

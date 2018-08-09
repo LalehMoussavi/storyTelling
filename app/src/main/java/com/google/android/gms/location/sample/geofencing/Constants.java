@@ -37,9 +37,6 @@ import java.util.List;
 
 final class Constants {
 
-    private Constants() {
-    }
-
     private static final String PACKAGE_NAME = "com.google.android.gms.location.Geofence";
 
     static final String GEOFENCES_ADDED_KEY = PACKAGE_NAME + ".GEOFENCES_ADDED_KEY";
@@ -55,23 +52,22 @@ final class Constants {
      */
     static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS =
             GEOFENCE_EXPIRATION_IN_HOURS * 60 * 60 * 1000;
-//    static final float GEOFENCE_RADIUS_IN_METERS = 1609; // 1 mile, 1.6 km
-    static final float GEOFENCE_RADIUS_IN_METERS = 35;//Laleh changed to 30 m
+
+    //Geofences' radius
+    static final float GEOFENCE_RADIUS_IN_METERS = 35;
 
     /**
-     * Map for storing information about story stops in the Edinburgh.
+     * data structures for storing information about story stops in the Edinburgh.
      */
     static final LinkedHashMap<String, LatLng> Ed_LANDMARKS = new LinkedHashMap<>();
     public static HashMap<String,String> id2Story = new HashMap<>();
     public static HashMap<String,String> id2Dir = new HashMap<>();
     public static HashMap<String,String> id2PreStory = new HashMap<>();
-
-
     public static ArrayList<String> ids = new ArrayList<>();
     public static HashMap<String,Integer> id2Idx = new HashMap<>();
-
-    public static int NUMDIST = 5;//number of distances to get average before rerouting
-    public static boolean debug = true;
+    public static boolean debug = false;
+    public static double MINWRONGDIST = 70;
+    public static int NUMWRONGDIRLIST = 3;
 
 
 
@@ -85,20 +81,22 @@ final class Constants {
     static {
         // Ghost tour stops
 
-//        Ed_LANDMARKS.put("Home",new LatLng(55.926667, -3.185359));
-//
+
 //        Ed_LANDMARKS.put("Left_home",new LatLng(55.927297, -3.183221));
-//
+
 //        Ed_LANDMARKS.put("Bus stop_home",new LatLng(55.926686, -3.186341));
-//        Ed_LANDMARKS.put("Avenue Store",new LatLng(55.927432, -3.187345));
-//        Ed_LANDMARKS.put("Informatics Forum",new LatLng(55.944772,-3.187362));
+//
+//
+//        Ed_LANDMARKS.put("Home",new LatLng(55.926667, -3.185359));
+
+//      Ed_LANDMARKS.put("Informatics",new LatLng(55.944772,-3.187362));
 //        Ed_LANDMARKS.put("Upper High Street",new LatLng(55.949802, -3.190169));
-//        Ed_LANDMARKS.put("Door Without card",new LatLng(55.944909, -3.186446));
-        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
+////        Ed_LANDMARKS.put("Door Without card",new LatLng(55.944909, -3.186446));
+//        Ed_LANDMARKS.put("School of Geosciences",new LatLng(55.948098, -3.183513));
 
-        Ed_LANDMARKS.put("Edinburgh Castle",new LatLng(55.948591, -3.198279));
+        Ed_LANDMARKS.put("Edinburgh Castle",new LatLng(55.948606, -3.198143));
 
-        Ed_LANDMARKS.put("Castlehill",new LatLng(55.948717, -3.197344));
+        Ed_LANDMARKS.put("Castlehill",new LatLng(55.948786, -3.196796));
 
         Ed_LANDMARKS.put("Lawnmarket and Victoria Street",new LatLng(55.948792, -3.193799));
 
@@ -108,11 +106,11 @@ final class Constants {
 
         Ed_LANDMARKS.put("Lower High Street",new LatLng(55.950332, -3.186279));
 
-        Ed_LANDMARKS.put("Canongate 1",new LatLng(55.950702, -3.183809));
+        Ed_LANDMARKS.put("Canongate I",new LatLng(55.950702, -3.183809));
 
         Ed_LANDMARKS.put("Canongate II",new LatLng(55.951503, -3.179397));
 
-       Ed_LANDMARKS.put("Holyrood",new LatLng(55.952711, -3.174071));
+        Ed_LANDMARKS.put("Holyrood",new LatLng(55.952736, -3.173873));
 
         //TODO: fill out this hashMap in the static block below similar to Ed_LANDMARKS
 

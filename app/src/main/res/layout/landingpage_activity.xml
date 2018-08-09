@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     app:layout_editor_absoluteX="0dp"
     app:layout_editor_absoluteY="80dp"
-    tools:context=".Introduction"
+    tools:context=".LandingPage"
     tools:layout_editor_absoluteX="0dp"
     tools:layout_editor_absoluteY="80dp">
 

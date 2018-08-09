@@ -33,7 +33,7 @@ limitations under the License.
         <!--             The API key for Google Maps-based APIs. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDSruS20vubRU2r4hW0IGeWZ7zYO-8YEMU" />
+            android:value="AIzaSyDCrgpG03HXZbdiiinXF4OW4QpUACynjww" />
 
         <activity
             android:name=".MainActivity"
@@ -60,14 +60,11 @@ limitations under the License.
             android:label="@string/title_activity_scrolling"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
-            android:name=".Main2Activity"
-            android:label="@string/title_activity_main2" />
-        <activity
             android:name=".MapsActivityCurrentPlace"
             android:label="@string/title_activity_maps"
             android:theme="@style/GMAppTheme" />
         <activity
-            android:name=".Introduction"
+            android:name=".LandingPage"
             android:label="@string/title_activity_introduction"
             android:theme="@style/Theme.Base.NoActionBar"></activity>
     </application>

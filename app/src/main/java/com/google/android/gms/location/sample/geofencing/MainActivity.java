@@ -18,10 +18,8 @@ package com.google.android.gms.location.sample.geofencing;
 
 import android.Manifest;
 import android.MySQLiteOpenHelper;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -30,6 +28,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -40,6 +39,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import android.speech.tts.TextToSpeech;
+
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -115,14 +116,18 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
     public static boolean justEnteredGeofence;
 
     private PendingGeofenceTask mPendingGeofenceTask = PendingGeofenceTask.NONE;
+    Handler handler;
 
     public static boolean firstTime = true;
 
     static void reset(){
+        if (MainActivity.uniqueMainActivity!=null){
+            MainActivity.uniqueMainActivity.mRemoveGeofencesButton.performClick();
+        }
         lastEnteredGeofence = null;
         lastExitedGeofence = null;
         activeStoryStopName = null;
-        nextStopTovisit = null;
+        nextStopTovisit = MapsActivityCurrentPlace.getNextStop();;
         requestedStop = null;//This is what user has asked explicitly. Has priority over other stops.
         shouldCoverByMap = true;
         goToClosetStop = false;//false: first stop, true: closest stop
@@ -137,7 +142,14 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (MainActivity.uniqueMainActivity!=null){
+            MainActivity.uniqueMainActivity.mRemoveGeofencesButton.performClick();
+        }
+
         if (getIntent().getBooleanExtra("EXIT", false)) {
+            if (handler!=null){
+                handler.removeCallbacksAndMessages(null);
+            }
             finish();
             System.exit(0);
         }
@@ -202,6 +214,21 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
 
 
+//        tts=new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
+//            @Override
+//            public void onInit(int status) {
+//                String text = "Any Text to Speak";
+////                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                    tts.speak(text,TextToSpeech.QUEUE_FLUSH,null);
+////                } else {
+////                    ts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+////                }
+//
+//            }
+//        });
+//
+//        tts.speak("testing", TextToSpeech.QUEUE_FLUSH, null);
+
         //Added by Laleh
 
 
@@ -220,13 +247,25 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         if (firstTime){
             firstTime = false;//TODO: change
             System.out.println("first time changed to: "+firstTime);
+
+            if (LandingPage.uniqueLandingPage !=null){
+                LandingPage.uniqueLandingPage.finish();
+            }
+
+
             Intent intent = new Intent();
-            intent.setClass(this, Introduction.class);
+            intent.setClass(this, LandingPage.class);
             startActivity(intent);
 
         }
 
         else if (shouldCoverByMap && onlyShowMarkers){
+
+            if (MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace!=null){
+                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.finish();
+            }
+
+
             Intent intent = new Intent();
             intent.setClass(this,MapsActivityCurrentPlace.class);
             startActivity(intent);
@@ -237,8 +276,13 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         //only call map activity if shouldCoverByMap=true
 
 
-        else if (shouldCoverByMap && !onlyShowMarkers){
+        else if (shouldCoverByMap && !onlyShowMarkers){//THIS IS THE MAP
             MainActivity.nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+
+            if (MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace!=null){
+                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.finish();
+            }
+
             mAddGeofencesButton.performClick();
             mAddGeofencesButton.setVisibility(View.GONE);
             mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
@@ -247,14 +291,14 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             intent.setClass(this,MapsActivityCurrentPlace.class);
             startActivity(intent);
         }
-        else if (lastEnteredGeofence!=null){//this means we have entered in geofence
+        else if (lastEnteredGeofence!=null){//THIS IS THE STORY.this means we have entered in geofence
             mAddGeofencesButton.performClick();
             mAddGeofencesButton.setVisibility(View.GONE);
             mRemoveGeofencesButton.setVisibility(View.GONE);//In future, just remove these two totally
             activeStoryStopName = lastEnteredGeofence.getRequestId();
             shouldCoverByMap = true;
             if (Story.uniqueStory!=null){
-                MySpeakerBox.stop();
+                MyTTS.stop();
                 Story.uniqueStory.finish();
             }
             //TODO: wait 10 seconds
@@ -274,7 +318,32 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 //                lastEnteredGeofence = null;//alan
 //        }
 
+        if (handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
 
+//        handler = new Handler();
+//
+//        final int delay = 10000; //milliseconds
+//
+//        handler.postDelayed(new Runnable(){
+//            public void run(){
+//                //do something
+//                handler.postDelayed(this, delay);
+//                System.out.println("every" + delay +" milliseconds");
+//                if (MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace!=null){
+//                    try {
+//                        MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation(false);
+//                    }
+//                    catch (Exception e){
+//                        if (Constants.debug){
+//                            Toast.makeText(getApplicationContext(), "exception in get recurring device location", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//
+//                }
+//            }
+//        }, delay);
 
 
     }
@@ -360,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             return;
         }
         showStory(this);
-//        MySpeakerBox.play(this);
+//        MyTTS.play(this);
     }
 
     public void ignoreStoryButtonHandler(View view) {

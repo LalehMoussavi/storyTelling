@@ -4,10 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -15,13 +12,8 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TableLayout;
-import android.widget.TextView;
 
-import com.mapzen.speakerbox.Speakerbox;
-
-public class Introduction extends AppCompatActivity {
+public class LandingPage extends AppCompatActivity {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -38,55 +30,41 @@ public class Introduction extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
-    public static Speakerbox speakerbox;
+    public static LandingPage uniqueLandingPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_introduction);
+        setContentView(R.layout.landingpage_activity);
 
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
+        //The only instance of LandingPage, to be used in MainActivity
+        uniqueLandingPage = this;
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        speakerbox = new Speakerbox(getApplication());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        // Get the tab layout and link it to the mViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
+        // Set up the lister for tab selection
         TabLayout.ViewPagerOnTabSelectedListener tb = new MyTabLayoutViewPagerOnTabSelectedListener(mViewPager);
         tabLayout.addOnTabSelectedListener(tb);
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-//        if (getIntent().getBooleanExtra("EXIT", false)) {
-//            finish();
-//        }
 
     }
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_introduction, menu);
+        getMenuInflater().inflate(R.menu.menu_landing_page, menu);
         return true;
     }
 
@@ -128,7 +106,6 @@ public class Introduction extends AppCompatActivity {
                 case 2:
                     tab2 tab2 = new tab2();
                     return tab2;
-
                 case 1:
                     tab3 tab3 = new tab3();
                     return tab3;
@@ -148,11 +125,11 @@ public class Introduction extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "OVERVIEW";
-                case 1:
                     return "INTRODUCTION";
+                case 1:
+                    return "TOUR";
                 case 2:
-                    return "PREVIEW";
+                    return "HISTORY";
 
 
             }
@@ -161,9 +138,8 @@ public class Introduction extends AppCompatActivity {
 
     }
 
-
+    //Added to handle quiting the app
     @Override
-
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -177,6 +153,7 @@ public class Introduction extends AppCompatActivity {
 //                        finishAffinity();
 
                         //finishing everything
+                        MyTTS.stop();
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         intent.putExtra("EXIT", true);
@@ -192,6 +169,7 @@ public class Introduction extends AppCompatActivity {
 
 }
 
+//This piece of code is used to perform a simple thing when any of the tabs are selected: stop the speakerbox
 class MyTabLayoutViewPagerOnTabSelectedListener extends TabLayout.ViewPagerOnTabSelectedListener{
 
     public MyTabLayoutViewPagerOnTabSelectedListener(ViewPager mViewPager){
@@ -200,8 +178,8 @@ class MyTabLayoutViewPagerOnTabSelectedListener extends TabLayout.ViewPagerOnTab
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
-        System.out.println("switching tabs");
-        MySpeakerBox.stop();
+//        System.out.println("switching tabs");
+        MyTTS.stop();
         super.onTabSelected(tab);
     }
 
@@ -211,5 +189,6 @@ class MyTabLayoutViewPagerOnTabSelectedListener extends TabLayout.ViewPagerOnTab
 
     @Override
     public void onTabReselected(TabLayout.Tab tab) {
+
     }
 }

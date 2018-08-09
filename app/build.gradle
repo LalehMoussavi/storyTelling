@@ -11,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -39,4 +40,5 @@ dependencies {
     //added by laleh, https://android.jlelse.eu/google-maps-directions-api-5b2e11dee9b0
     compile 'com.google.maps:google-maps-services:0.1.20'
     compile 'com.mapzen.android:speakerbox:1.4.1'
+    implementation 'com.android.support:multidex:1.0.3'
 }

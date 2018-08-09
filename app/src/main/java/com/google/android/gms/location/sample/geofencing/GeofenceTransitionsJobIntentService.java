@@ -29,7 +29,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
@@ -103,7 +102,7 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
                 MainActivity.lastEnteredGeofence = thisGeofence;
                 MainActivity.activeStoryStopName = thisGeofence.getRequestId();
                 MainActivity.shouldCoverByMap=false;
-                MySpeakerBox.play("you have entered" +  MainActivity.activeStoryStopName + "Please press the notification message to listen to the story.",false);
+                MyTTS.play("You have arrived at " +  MainActivity.activeStoryStopName + "Please press the notification message to listen to the story.",false);
 
 
                 if (thisGeofence.getRequestId().equals(MainActivity.requestedStop)){
@@ -124,13 +123,16 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
                     return ;
                 }
 
-                MySpeakerBox.play("you have exited the" +  thisGeofence.getRequestId() + "If you need an updated direction, please see the map.",false);
+                String nextStopTovisit = MapsActivityCurrentPlace.getNextStop();
+                if (MainActivity.requestedStop==null || MainActivity.requestedStop.equals(nextStopTovisit)){
+                    MyTTS.play("you have exited the" +  thisGeofence.getRequestId() + "If you need an updated direction, please see the map.",false);
+                }
 
                 MainActivity.lastExitedGeofence = thisGeofence;
 
                 MainActivity.shouldCoverByMap=true;
 
-                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation();
+                MapsActivityCurrentPlace.uniqueMapsActivityCurrentPlace.getDeviceLocation(true);
             }
 
             //Added by Laleh
@@ -190,6 +192,8 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
 
         // Create an explicit content Intent that starts the main Activity.
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+//        System.out.println("setting firstTime to false in transition");
+//        MainActivity.firstTime = false;
 
         // Construct a task stack.
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
@@ -216,7 +220,8 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
                 .setColor(Color.RED)
                 .setContentTitle(notificationDetails)
                 .setContentText(getString(R.string.geofence_transition_notification_text))
-                .setContentIntent(notificationPendingIntent);
+                .setContentIntent(notificationPendingIntent);//.setVisibility(Notification.VISIBILITY_PUBLIC);
+        //TO explain: visibility public is to make sure notification will be received on lock screen.
 
         // Set the Channel ID for Android O.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -227,6 +232,7 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
         builder.setAutoCancel(true);
 
         // Issue the notification
+
         mNotificationManager.notify(0, builder.build());
 
 //        MainActivity.uniqueMainActivity.onStart();
